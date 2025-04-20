@@ -21,7 +21,7 @@
 
 ---
 
-## Demo
+## Try it out!
 
 [Visit PromoGate](https://pr0m0gate.github.io)
 
