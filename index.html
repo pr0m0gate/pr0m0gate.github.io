@@ -205,7 +205,7 @@
   <div class="card" id="viewer" style="display:none;">
     <h2>Complete the Tasks Below</h2>
     <div id="task-view"></div>
-    <button id="start-countdown" onclick="startCountdown()">Start Countdown</button>
+    <button id="start-countdown" onclick="startCountdown()">I Finished The Tasks!</button>
     <div id="countdown" style="display:none;"></div>
   </div>
 
@@ -319,13 +319,13 @@
       if (!currentConfig.tasks.every((_, i) => document.getElementById(`task-${i}`).checked)) {
         return showFeedback('Please complete all tasks first', 'error');
       }
-      let sec = 10;
+      let sec = 30;
       const el = document.getElementById('countdown');
       el.style.display = 'block';
       (function tick() {
         el.textContent = `Redirecting in ${sec--}s…`;
         if (sec < 0) window.location.href = currentConfig.reward;
-        else setTimeout(tick, 1000);
+        else setTimeout(tick, 3000);
       })();
     }
 
