@@ -319,7 +319,7 @@
       if (!currentConfig.tasks.every((_, i) => document.getElementById(`task-${i}`).checked)) {
         return showFeedback('Please complete all tasks first', 'error');
       }
-      let sec = 30;
+      let sec = 60;
       const el = document.getElementById('countdown');
       el.style.display = 'block';
       (function tick() {
