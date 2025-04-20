@@ -325,7 +325,7 @@
       (function tick() {
         el.textContent = `Redirecting in ${sec--}s…`;
         if (sec < 0) window.location.href = currentConfig.reward;
-        else setTimeout(tick, 3000);
+        else setTimeout(tick, 1000);
       })();
     }
 
