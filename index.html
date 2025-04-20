@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- PNG Favicon -->
+<link rel="icon" type="image/png" href="https://github.com/maxhax123/PromoGate/blob/main/PromoGate.PNG?raw=true" />
+  <meta charset="UTF-8">
+  <title>PromoGate – Unlock Content Through Action</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+    :root {
+      --primary: #4a90e2;
+      --background: #111;
+      --text: #f0f0f0;
+      --card: #1c1c1c;
+      --border: #2a2a2a;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h1, h2 {
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 720px;
+      box-sizing: border-box;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 14px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #222;
+      color: var(--text);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    button {
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: #3f7dd1;
+    }
+
+.task {
+  display: flex;
+  flex-direction: column; /* Stack content to prevent horizontal overflow */
+  align-items: flex-start;
+  background: #1f1f1f;
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  border-left: 4px solid var(--primary);
+  position: relative;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+
+
+.task label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.97rem;
+  word-break: break-word;
+  width: 100%;
+}
+
+    .task a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      word-break: break-all;
+    }
+
+.task a,
+.task .task-link {
+  word-break: break-all;
+  overflow-wrap: break-word;
+  display: inline-block;
+  max-width: 100%;
+}
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .task button {
+      width: auto;
+      padding: 8px 12px;
+      background: #ff3c3c;
+      font-weight: bold;
+    }
+
+    .task-type,
+    .task-url {
+      flex: 1;
+      margin: 0;
+    }
+
+    .generated-link {
+      background: #1f1f1f;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .feedback.success {
+      color: var(--success);
+    }
+
+    .feedback.error {
+      color: var(--danger);
+    }
+
+    #countdown {
+      text-align: center;
+      font-size: 1.4rem;
+      color: var(--primary);
+      font-weight: 600;
+      margin-top: 20px;
+    }
+
+    .checkmark {
+      font-size: 1.4rem;
+      color: var(--success);
+      margin-left: 12px;
+      display: none;
+      transition: transform 0.3s ease;
+    }
+
+    .completed .checkmark {
+      display: inline;
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="generator">
+    <h1>PromoGate Generator</h1>
+    <div id="task-list"></div>
+    <button onclick="addTask()">+ Add Task</button>
+    <input type="url" id="reward-url" placeholder="Reward URL (e.g. https://yourdomain.com/reward)" required />
+    <button onclick="generateLink()">Generate Share Link</button>
+    <input type="text" id="share-link" readonly class="generated-link" />
+    <div id="link-feedback" class="feedback"></div>
+  </div>
+
+  <div class="card" id="viewer" style="display:none;">
+    <h2>Complete the Tasks Below</h2>
+    <div id="task-view"></div>
+    <button id="start-countdown" onclick="startCountdown()">Start Countdown</button>
+    <div id="countdown" style="display:none;"></div>
+  </div>
+
+  <script>
+    const taskTypes = {
+      yt_sub:   "Subscribe to YouTube Channel",
+      yt_like:  "Like YouTube Video",
+      click:    "Click Link",
+      custom:   "Custom Task"
+    };
+    let currentConfig = null;
+
+    function addTask() {
+      const div = document.createElement('div');
+      div.className = 'task';
+      div.innerHTML = `
+        <select class="task-type" onchange="handleTaskTypeChange(this)">
+          ${Object.entries(taskTypes).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+        </select>
+        <input type="url" class="task-url" placeholder="Enter URL or instruction" required />
+        <div class="task-actions">
+          <button onclick="this.closest('.task').remove()">×</button>
+        </div>`;
+      document.getElementById('task-list').append(div);
+    }
+
+    function handleTaskTypeChange(sel) {
+      const inp = sel.closest('.task').querySelector('.task-url');
+      if (sel.value === 'custom') {
+        inp.type = 'text';
+        inp.placeholder = 'Enter task instruction';
+      } else {
+        inp.type = 'url';
+        inp.placeholder = 'Enter URL';
+      }
+    }
+
+    function validateTasks() {
+      return [...document.querySelectorAll('#task-list .task')].every(t => {
+        return t.querySelector('.task-url').value.trim() !== '';
+      });
+    }
+
+    function generateLink() {
+      if (!validateTasks()) {
+        return showFeedback('Please fill all task fields', 'error');
+      }
+      const tasks = [...document.querySelectorAll('#task-list .task')].map(t => ({
+        type: t.querySelector('.task-type').value,
+        url:  t.querySelector('.task-url').value
+      }));
+      const reward = document.getElementById('reward-url').value;
+      try {
+        new URL(reward);
+      } catch {
+        return showFeedback('Please enter a valid reward URL', 'error');
+      }
+      const data = btoa(encodeURIComponent(JSON.stringify({tasks, reward})));
+      const link = `${location.origin + location.pathname}#${data}`;
+      const out  = document.getElementById('share-link');
+      out.value = link;
+      showFeedback('Link generated! Click to copy', 'success');
+      out.onclick = () => {
+        navigator.clipboard.writeText(link)
+          .then(() => showFeedback('Link copied!', 'success'))
+          .catch(() => showFeedback('Failed to copy', 'error'));
+      };
+    }
+
+    function showFeedback(msg, type) {
+      const fb = document.getElementById('link-feedback');
+      fb.textContent = msg;
+      fb.className = `feedback ${type}`;
+      fb.style.display = 'block';
+      setTimeout(() => fb.style.display = 'none', 3000);
+    }
+
+    function displayTasks(cfg) {
+      const container = document.getElementById('task-view');
+      container.innerHTML = cfg.tasks.map((task, i) => `
+        <div class="task" id="viewer-task-${i}">
+          <span class="checkmark">✓</span>
+          <label>
+            <input type="checkbox" id="task-${i}" disabled />
+            ${taskTypes[task.type]}:
+            ${task.type === 'custom'
+              ? `<span class="task-link" data-index="${i}">${task.url}</span>`
+              : `<a href="${task.url}" target="_blank" class="task-link" data-index="${i}">${task.url}</a>`}
+          </label>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.task-link').forEach(link => {
+        link.addEventListener('click', () => {
+          const idx = link.dataset.index;
+          const url = link.tagName === 'A' ? link.href : link.textContent;
+          window.open(url, '_blank');
+          setTimeout(() => {
+            const cb = document.getElementById(`task-${idx}`);
+            const taskDiv = document.getElementById(`viewer-task-${idx}`);
+            if (!taskDiv.classList.contains('completed')) {
+              cb.checked = true;
+              taskDiv.classList.add('completed');
+            }
+          }, 5000);
+        });
+      });
+    }
+
+    function startCountdown() {
+      if (!currentConfig.tasks.every((_, i) => document.getElementById(`task-${i}`).checked)) {
+        return showFeedback('Please complete all tasks first', 'error');
+      }
+      let sec = 10;
+      const el = document.getElementById('countdown');
+      el.style.display = 'block';
+      (function tick() {
+        el.textContent = `Redirecting in ${sec--}s…`;
+        if (sec < 0) window.location.href = currentConfig.reward;
+        else setTimeout(tick, 1000);
+      })();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (location.hash.length > 1) {
+        try {
+          currentConfig = JSON.parse(decodeURIComponent(atob(location.hash.slice(1))));
+          document.getElementById('generator').style.display = 'none';
+          document.getElementById('viewer').style.display = 'block';
+          displayTasks(currentConfig);
+        } catch {
+          alert('Invalid or corrupted task configuration');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
